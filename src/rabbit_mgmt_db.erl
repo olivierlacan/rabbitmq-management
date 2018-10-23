@@ -455,6 +455,18 @@ format_range(Data, Key, Range0, Interval) ->
    rabbit_mgmt_stats:format_range(Range0, Now, Table, Interval, InstantRateFun,
                                   SamplesFun).
 
+fetch_slides(Ele, Key, Data)
+  when Key =:= channel_stats_deliver_stats orelse
+       Key =:= queue_stats_deliver_stats orelse
+       Key =:= vhost_stats_deliver_stats ->
+    case element(Ele, maps:get(Key, Data)) of
+        not_found -> [];
+        Slides when is_list(Slides) ->
+            [rabbit_mgmt_data_compat:fill_get_empty_queue_metric(S)
+             || S <- Slides, not_found =/= S];
+        Slide ->
+            [rabbit_mgmt_data_compat:fill_get_empty_queue_metric(Slide)]
+    end;
 fetch_slides(Ele, Key, Data) ->
     case element(Ele, maps:get(Key, Data)) of
         not_found -> [];
